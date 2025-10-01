@@ -19,6 +19,16 @@ This template should help get you started developing with Vue 3 in Vite.
 
 See [Vite Configuration Reference](https://vite.dev/config/).
 
+## Dummy Accounts
+
+Use the following dummy accounts to test the login flow and akses dashboard yang sesuai dengan peran:
+
+| Role    | Email                    | Password     |
+|---------|--------------------------|--------------|
+| Admin   | `admin@amk-portal.test`  | `Admin123!`  |
+| Pegawai | `pegawai@amk-portal.test`| `Pegawai123!`|
+| Officer | `officer@amk-portal.test`| `Officer123!`|
+
 ## Project Setup
 
 ```sh
