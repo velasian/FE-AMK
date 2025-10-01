@@ -38,7 +38,7 @@ const handleLogin = async () => {
       <div class="auth-card__brand">
         <span class="auth-card__chip">AMK Portal</span>
         <h1 id="login-title">Halaman Masuk</h1>
-        <p>Lorem ipsum dolor, sit amet consectetur adipisicing</p>
+        <p>Akses data lebih mudah dengan AMK Portal</p>
       </div>
 
       <form class="auth-form" @submit.prevent="handleLogin">
