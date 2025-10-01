@@ -36,18 +36,18 @@ const handleLogin = async () => {
 
     <div class="auth-card" aria-labelledby="login-title">
       <div class="auth-card__brand">
-        <span class="auth-card__chip">Portal Pegawai AMK</span>
-        <h1 id="login-title">Masuk ke Akun</h1>
-        <p>Gunakan kredensial internal untuk mengakses dashboard pegawai.</p>
+        <span class="auth-card__chip">AMK Portal</span>
+        <h1 id="login-title">Halaman Masuk</h1>
+        <p>Lorem ipsum dolor, sit amet consectetur adipisicing</p>
       </div>
 
       <form class="auth-form" @submit.prevent="handleLogin">
         <label class="auth-form__field">
-          <span>Email Perusahaan</span>
+          <span>Email</span>
           <input
             v-model="form.email"
             type="email"
-            placeholder="pegawai@amk.co.id"
+            placeholder="abcdefg@amk.com"
             required
             autocomplete="username"
           />
@@ -58,7 +58,7 @@ const handleLogin = async () => {
           <input
             v-model="form.password"
             type="password"
-            placeholder="Minimal 8 karakter"
+            placeholder="Isi Kata Sandi Anda"
             minlength="8"
             required
             autocomplete="current-password"
@@ -72,7 +72,7 @@ const handleLogin = async () => {
 
         <!-- Kirim `form.email` dan `form.password` dari sini ke login Laravel Sanctum. -->
         <button class="auth-form__submit" type="submit" :disabled="isLoading">
-          <span v-if="!isLoading">Masuk Sekarang</span>
+          <span v-if="!isLoading">MASUK</span>
           <span v-else>Memverifikasi...</span>
         </button>
       </form>
@@ -80,7 +80,7 @@ const handleLogin = async () => {
       <p v-if="feedback" class="auth-card__feedback">{{ feedback }}</p>
 
       <footer class="auth-card__footer">
-        <span>Butuh bantuan? Hubungi tim IT.</span>
+        <span>Butuh bantuan?<a href="https://api.whatsapp.com/send/?phone=%2B6285173088119&text&type=phone_number&app_absent=0" style="color:aqua; font-style:italic;">klik disini</a></span>
       </footer>
     </div>
   </div>
@@ -153,7 +153,7 @@ const handleLogin = async () => {
   border-radius: 999px;
   background: rgba(16, 63, 145, 0.55);
   border: 1px solid rgba(91, 228, 255, 0.45);
-  font-size: 0.82rem;
+  font-size: 1.2rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -261,7 +261,7 @@ const handleLogin = async () => {
 
 .auth-card__footer {
   text-align: center;
-  font-size: 0.85rem;
+  font-size: 1rem;
   color: rgba(242, 246, 255, 0.65);
 }
 
