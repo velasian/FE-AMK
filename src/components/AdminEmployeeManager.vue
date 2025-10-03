@@ -42,11 +42,18 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="employee in paginatedEmployees" :key="employee.id">
+          <tr
+            v-for="employee in paginatedEmployees"
+            :key="employee.id"
+            :class="{ 'is-active': employee.id === selectedEmployeeId }"
+            @click="selectEmployee(employee.id)"
+          >
             <td>{{ employee.employeeNumber }}</td>
             <td>
               <div class="table-name">
-                <strong>{{ employee.name }}</strong>
+                <button type="button" class="table-name__trigger" @click.stop="selectEmployee(employee.id)">
+                  <strong>{{ employee.name }}</strong>
+                </button>
                 <span>{{ employee.phone || 'Belum diisi' }}</span>
               </div>
             </td>
@@ -56,8 +63,8 @@
             <td class="password">{{ employee.password }}</td>
             <td>
               <div class="row-actions">
-                <button type="button" class="link" @click="openEditForm(employee)">Ubah</button>
-                <button type="button" class="link link--danger" @click="confirmRemoval(employee)">Hapus</button>
+                <button type="button" class="link" @click.stop="openEditForm(employee)">Ubah</button>
+                <button type="button" class="link link--danger" @click.stop="confirmRemoval(employee)">Hapus</button>
               </div>
             </td>
           </tr>
@@ -67,6 +74,112 @@
         </tbody>
       </table>
     </div>
+
+    <section v-if="selectedEmployee" class="employee-detail">
+      <header class="employee-detail__header">
+        <div>
+          <h3>{{ selectedEmployee.name }}</h3>
+          <p>
+            {{ selectedEmployee.employeeNumber }} •
+            {{ selectedEmployee.department }}
+          </p>
+        </div>
+        <div class="employee-detail__actions">
+          <button type="button" class="button button--ghost" @click="openEditForm(selectedEmployee)">
+            Ubah data
+          </button>
+          <button type="button" class="button button--danger" @click="confirmRemoval(selectedEmployee)">
+            Hapus pegawai
+          </button>
+        </div>
+      </header>
+
+      <div class="employee-detail__cards">
+        <article class="detail-card">
+          <h4>Profil</h4>
+          <ul>
+            <li>
+              <span>Jabatan</span>
+              <strong>{{ selectedEmployee.position }}</strong>
+            </li>
+            <li>
+              <span>Departemen</span>
+              <strong>{{ selectedEmployee.department }}</strong>
+            </li>
+            <li>
+              <span>Tanggal bergabung</span>
+              <strong>{{ formatDate(selectedEmployee.joinDate) }}</strong>
+            </li>
+            <li>
+              <span>Tanggal lahir</span>
+              <strong>{{ formatDate(selectedEmployee.dateOfBirth) }}</strong>
+            </li>
+          </ul>
+        </article>
+
+        <article class="detail-card">
+          <h4>Kontak & Darurat</h4>
+          <ul>
+            <li>
+              <span>Nomor telepon</span>
+              <strong>{{ selectedEmployee.phone || 'Belum diisi' }}</strong>
+            </li>
+            <li>
+              <span>Alamat domisili</span>
+              <strong>{{ selectedEmployee.address || 'Belum diisi' }}</strong>
+            </li>
+            <li>
+              <span>Kontak darurat</span>
+              <strong>{{ selectedEmployee.emergencyContactName || 'Belum diisi' }}</strong>
+            </li>
+            <li>
+              <span>Nomor darurat</span>
+              <strong>{{ selectedEmployee.emergencyContactPhone || 'Belum diisi' }}</strong>
+            </li>
+          </ul>
+        </article>
+
+        <article class="detail-card">
+          <h4>Akun Portal & Payroll</h4>
+          <ul>
+            <li>
+              <span>Email</span>
+              <strong>{{ selectedEmployee.email }}</strong>
+            </li>
+            <li>
+              <span>Kata sandi</span>
+              <strong class="detail-card__password">{{ selectedEmployee.password }}</strong>
+            </li>
+            <li>
+              <span>Bank</span>
+              <strong>{{ selectedEmployee.bankName || 'Belum diisi' }}</strong>
+            </li>
+            <li>
+              <span>Nomor rekening</span>
+              <strong>{{ selectedEmployee.bankAccount || 'Belum diisi' }}</strong>
+            </li>
+          </ul>
+          <p class="detail-card__hint">
+            Kredensial portal otomatis tersedia di akun pegawai dan dapat diubah sewaktu-waktu.
+          </p>
+        </article>
+
+        <article v-if="customFields.length" class="detail-card">
+          <h4>Field tambahan</h4>
+          <ul>
+            <li v-for="field in customFields" :key="field.id">
+              <span>{{ field.label }}</span>
+              <strong>{{ selectedEmployee.customValues?.[field.key] || 'Belum diisi' }}</strong>
+            </li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section v-else class="employee-detail employee-detail--empty">
+      <h3>Pilih pegawai</h3>
+      <p>Pilih salah satu nama pegawai untuk melihat biodata lengkap dan kredensial portal.</p>
+    </section>
 
     <footer class="employee-manager__footer" v-if="filteredEmployees.length">
       <p>Menampilkan {{ startRow }}-{{ endRow }} dari {{ filteredEmployees.length }} pegawai</p>
@@ -79,8 +192,8 @@
 
     <transition name="fade">
       <div v-if="showForm" class="modal-backdrop" @click.self="closeForm">
-        <section class="modal">
-          <header class="modal__header">
+        <section class="modal" :style="modalTransformStyle">
+          <header class="modal__header" @pointerdown="handleHeaderPointerDown">
             <div>
               <h3>{{ isEditMode ? 'Ubah data pegawai' : 'Tambah pegawai baru' }}</h3>
               <p>Field kustom yang ditambahkan akan otomatis tersedia di akun pegawai.</p>
@@ -144,7 +257,7 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
 
 import { useEmployeeStore } from '../utils/employeeStore'
 
@@ -168,6 +281,57 @@ const isEditMode = ref(false)
 const editingEmployeeId = ref('')
 const deletingEmployee = ref(null)
 const newFieldName = ref('')
+const selectedEmployeeId = ref('')
+
+const modalPosition = reactive({ x: 0, y: 0 })
+const dragState = reactive({ active: false, offsetX: 0, offsetY: 0 })
+
+const modalTransformStyle = computed(() => ({
+  transform: `translate3d(${modalPosition.x}px, ${modalPosition.y}px, 0)`
+}))
+
+const detachDragListeners = () => {
+  if (typeof window === 'undefined') return
+  window.removeEventListener('pointermove', handlePointerMove)
+  window.removeEventListener('pointerup', endDrag)
+}
+
+const handlePointerMove = (event) => {
+  if (!dragState.active) return
+  modalPosition.x = event.clientX - dragState.offsetX
+  modalPosition.y = event.clientY - dragState.offsetY
+}
+
+const endDrag = () => {
+  if (!dragState.active) return
+  dragState.active = false
+  detachDragListeners()
+}
+
+const beginDrag = (event) => {
+  if (typeof event === 'undefined') return
+  if (typeof event.button !== 'undefined' && event.button !== 0) return
+  dragState.active = true
+  dragState.offsetX = event.clientX - modalPosition.x
+  dragState.offsetY = event.clientY - modalPosition.y
+  if (typeof window !== 'undefined') {
+    window.addEventListener('pointermove', handlePointerMove)
+    window.addEventListener('pointerup', endDrag)
+  }
+  event.preventDefault()
+}
+
+const handleHeaderPointerDown = (event) => {
+  if (event.target?.closest('button')) return
+  beginDrag(event)
+}
+
+const resetModalPosition = () => {
+  modalPosition.x = 0
+  modalPosition.y = 0
+  dragState.active = false
+  detachDragListeners()
+}
 
 const baseFormState = () => ({
   employeeNumber: '',
@@ -233,6 +397,11 @@ const paginatedEmployees = computed(() => {
   return filteredEmployees.value.slice(start, start + pageSize.value)
 })
 
+const selectedEmployee = computed(() => {
+  if (!selectedEmployeeId.value) return null
+  return employees.value.find((employee) => employee.id === selectedEmployeeId.value) || null
+})
+
 const startRow = computed(() => {
   if (!filteredEmployees.value.length) return 0
   return (currentPage.value - 1) * pageSize.value + 1
@@ -241,6 +410,42 @@ const startRow = computed(() => {
 const endRow = computed(() => {
   return Math.min(currentPage.value * pageSize.value, filteredEmployees.value.length)
 })
+
+const ensureSelectedEmployee = () => {
+  const list = filteredEmployees.value
+  if (!list.length) {
+    selectedEmployeeId.value = ''
+    return
+  }
+  if (!list.some((employee) => employee.id === selectedEmployeeId.value)) {
+    selectedEmployeeId.value = list[0].id
+  }
+}
+
+const ensureSelectionInPage = () => {
+  const list = paginatedEmployees.value
+  if (!list.length) return
+  if (!list.some((employee) => employee.id === selectedEmployeeId.value)) {
+    selectedEmployeeId.value = list[0].id
+  }
+}
+
+watch(filteredEmployees, ensureSelectedEmployee, { immediate: true })
+watch(paginatedEmployees, ensureSelectionInPage)
+watch(totalPages, (value) => {
+  if (currentPage.value > value) {
+    currentPage.value = value
+    ensureSelectionInPage()
+  }
+})
+
+const selectEmployee = (id) => {
+  if (!id) {
+    selectedEmployeeId.value = ''
+    return
+  }
+  selectedEmployeeId.value = id
+}
 
 watch([searchQuery, pageSize], () => {
   currentPage.value = 1
@@ -265,12 +470,20 @@ watch(
   { deep: true }
 )
 
+watch(showForm, (value) => {
+  if (!value) {
+    resetModalPosition()
+  }
+})
+
 const goToPage = (page) => {
   const safePage = Math.min(Math.max(page, 1), totalPages.value)
   currentPage.value = safePage
+  ensureSelectionInPage()
 }
 
 const openCreateForm = () => {
+  resetModalPosition()
   Object.assign(formState, baseFormState())
   Object.keys(formCustomValues).forEach((key) => delete formCustomValues[key])
   customFields.value.forEach((field) => {
@@ -282,6 +495,7 @@ const openCreateForm = () => {
 }
 
 const openEditForm = (employee) => {
+  resetModalPosition()
   Object.assign(formState, baseFormState(), employee)
   Object.keys(formCustomValues).forEach((key) => delete formCustomValues[key])
   customFields.value.forEach((field) => {
@@ -302,12 +516,14 @@ const handleSubmit = () => {
     customValues: { ...formCustomValues }
   }
 
+  let targetId = editingEmployeeId.value
   if (isEditMode.value) {
     updateEmployee(editingEmployeeId.value, payload)
   } else {
-    addEmployee(payload)
+    targetId = addEmployee(payload)
   }
 
+  selectEmployee(targetId)
   closeForm()
 }
 
@@ -321,7 +537,12 @@ const cancelRemoval = () => {
 
 const handleRemoval = () => {
   if (deletingEmployee.value) {
-    removeEmployee(deletingEmployee.value.id)
+    const removedId = deletingEmployee.value.id
+    removeEmployee(removedId)
+    if (selectedEmployeeId.value === removedId) {
+      ensureSelectedEmployee()
+      ensureSelectionInPage()
+    }
   }
   deletingEmployee.value = null
 }
@@ -331,6 +552,19 @@ const handleAddField = () => {
   addCustomField(newFieldName.value)
   newFieldName.value = ''
 }
+
+const formatDate = (value) => {
+  if (!value) return 'Belum diisi'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return date.toLocaleDateString('id-ID', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric'
+  })
+}
+
+onBeforeUnmount(detachDragListeners)
 </script>
 
 <style scoped>
@@ -465,9 +699,34 @@ const handleAddField = () => {
   gap: 4px;
 }
 
+.table-name__trigger {
+  border: none;
+  background: none;
+  padding: 0;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+.table-name__trigger strong {
+  font-weight: 600;
+}
+
 .table-name span {
   font-size: 12px;
   color: #6a7190;
+}
+
+.table-wrapper tbody tr {
+  transition: background 0.2s ease;
+}
+
+.table-wrapper tbody tr.is-active {
+  background: rgba(31, 60, 136, 0.08);
+}
+
+.table-wrapper tbody tr.is-active .table-name__trigger strong {
+  color: #1f3c88;
 }
 
 .password {
@@ -560,6 +819,114 @@ const handleAddField = () => {
   color: #ffffff;
 }
 
+.employee-detail {
+  margin-top: 12px;
+  background: rgba(31, 60, 136, 0.06);
+  border-radius: 22px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.employee-detail__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.employee-detail__header h3 {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.employee-detail__header p {
+  color: #6a7190;
+  font-size: 13px;
+}
+
+.employee-detail__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.employee-detail__cards {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scroll-snap-type: x proximity;
+}
+
+.detail-card {
+  flex: 0 0 260px;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 18px 20px;
+  box-shadow: 0 16px 30px rgba(15, 28, 63, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scroll-snap-align: start;
+}
+
+.detail-card h4 {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.detail-card ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail-card li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-card span {
+  font-size: 12px;
+  color: #6a7190;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.detail-card strong {
+  font-size: 15px;
+  color: #1b2142;
+}
+
+.detail-card__password {
+  font-family: 'Fira Code', 'Source Code Pro', monospace;
+  letter-spacing: 0.5px;
+}
+
+.detail-card__hint {
+  margin-top: auto;
+  font-size: 12px;
+  color: #7f87aa;
+}
+
+.employee-detail--empty {
+  align-items: center;
+  text-align: center;
+  background: rgba(31, 60, 136, 0.04);
+  color: #6a7190;
+}
+
+.employee-detail--empty h3 {
+  color: #1b2142;
+  font-weight: 600;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -577,6 +944,8 @@ const handleAddField = () => {
   box-shadow: 0 24px 60px rgba(11, 28, 63, 0.25);
   display: flex;
   flex-direction: column;
+  position: relative;
+  will-change: transform;
 }
 
 .modal__header {
@@ -586,11 +955,17 @@ const handleAddField = () => {
   align-items: flex-start;
   gap: 12px;
   border-bottom: 1px solid rgba(31, 60, 136, 0.08);
+  cursor: grab;
+  user-select: none;
 }
 
 .modal__header h3 {
   font-size: 20px;
   font-weight: 600;
+}
+
+.modal__header:active {
+  cursor: grabbing;
 }
 
 .modal__header p {
@@ -708,6 +1083,27 @@ const handleAddField = () => {
 
   .custom-field {
     width: 100%;
+  }
+
+  .employee-detail {
+    padding: 20px;
+  }
+
+  .employee-detail__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .employee-detail__actions {
+    width: 100%;
+  }
+
+  .employee-detail__cards {
+    scroll-snap-type: x mandatory;
+  }
+
+  .detail-card {
+    flex: 0 0 min(280px, 86vw);
   }
 
   .modal {

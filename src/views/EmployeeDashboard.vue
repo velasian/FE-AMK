@@ -12,16 +12,18 @@
     quick-actions-title="Butuh melakukan sesuatu?"
     accent-color="#1f3c88"
     greeting="Hai, berikut ringkasan biodata Anda!"
+    overview-key="overview"
+    v-model:active-menu-key="activeMenu"
     @logout="handleLogout"
   >
-    <template #content>
+    <template #biodata>
       <EmployeeProfilePanel :email="sessionUser?.email || ''" />
     </template>
   </DashboardLayout>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import DashboardLayout from '../components/DashboardLayout.vue'
@@ -44,10 +46,11 @@ const handleLogout = () => {
   router.push('/login')
 }
 
+const activeMenu = ref('overview')
+
 const menuItems = [
-  { label: 'Beranda', helper: 'Ringkasan biodata' },
-  { label: 'Biodata', helper: 'Perbarui informasi Anda' },
-  { label: 'Field Tambahan', helper: 'Lengkapi permintaan HR' }
+  { key: 'overview', label: 'Beranda', helper: 'Ringkasan biodata' },
+  { key: 'biodata', label: 'Biodata', helper: 'Perbarui informasi Anda' }
 ]
 
 const { customFields, getEmployeeByEmail } = useEmployeeStore()

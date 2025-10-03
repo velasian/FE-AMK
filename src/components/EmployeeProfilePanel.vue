@@ -27,6 +27,10 @@
             <dd>{{ employee.email }}</dd>
           </div>
           <div>
+            <dt>Kata Sandi Portal</dt>
+            <dd class="profile-panel__password">{{ employee.password }}</dd>
+          </div>
+          <div>
             <dt>Departemen</dt>
             <dd>{{ employee.department }}</dd>
           </div>
@@ -190,6 +194,12 @@ const formatDate = (value) => {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+}
+
+.profile-panel__password {
+  font-family: 'Fira Code', 'Source Code Pro', monospace;
+  letter-spacing: 0.4px;
+  color: #1f3c88;
 }
 
 .profile-panel__header h2 {

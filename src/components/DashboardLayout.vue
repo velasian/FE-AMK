@@ -19,12 +19,12 @@
       <div class="sidebar__role">{{ role }}</div>
       <nav class="sidebar__menu">
         <button
-          v-for="(item, index) in menuItems"
-          :key="item.label"
+          v-for="item in menuEntries"
+          :key="item._key"
           type="button"
           class="menu-item"
-          :class="{ active: index === 0 }"
-          @click="handleMenuClick"
+          :class="{ active: item._key === currentMenuKey }"
+          @click="() => selectMenu(item._key)"
         >
           <span class="menu-item__bullet" />
           <div class="menu-item__text">
@@ -67,7 +67,7 @@
         </div>
       </header>
 
-      <section v-if="summaryCards.length" class="cards-grid">
+      <section v-if="summaryCards.length && isOverview" class="cards-grid">
         <article v-for="card in summaryCards" :key="card.title" class="summary-card">
           <div class="summary-card__icon" :style="{ '--card-color': card.accent || accentColor }">
             <span>{{ card.icon }}</span>
@@ -80,11 +80,18 @@
         </article>
       </section>
 
-      <section v-if="$slots.content" class="dashboard__slot">
-        <slot name="content" />
+      <section v-if="isOverview && $slots.overview" class="dashboard__slot">
+        <slot name="overview" />
       </section>
 
-      <div v-if="recentItems.length || (stats && stats.items && stats.items.length)" class="content-grid">
+      <section v-else-if="activeSlotName" class="dashboard__slot dashboard__slot--fill">
+        <slot :name="activeSlotName" />
+      </section>
+
+      <div
+        v-if="isOverview && (recentItems.length || (stats && stats.items && stats.items.length))"
+        class="content-grid"
+      >
         <section v-if="recentItems.length" class="recent-card">
           <div class="card-header">
             <div>
@@ -151,7 +158,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, useSlots, watch } from 'vue'
 
 const props = defineProps({
   userName: { type: String, required: true },
@@ -172,10 +179,77 @@ const props = defineProps({
     default: () => []
   },
   quickActionsTitle: { type: String, default: 'Aksi cepat' },
-  accentColor: { type: String, default: '#1f3c88' }
+  accentColor: { type: String, default: '#1f3c88' },
+  activeMenuKey: { type: String, default: '' },
+  overviewKey: { type: String, default: '' }
 })
 
-const emit = defineEmits(['logout'])
+const emit = defineEmits(['logout', 'update:activeMenuKey'])
+
+const slots = useSlots()
+
+const menuEntries = computed(() =>
+  props.menuItems.map((item, index) => ({
+    ...item,
+    _key: item.key || item.id || item.value || item.label || `menu-${index}`
+  }))
+)
+
+const internalActiveKey = ref('')
+
+const fallbackKey = computed(() => menuEntries.value[0]?._key || '')
+
+const currentMenuKey = computed({
+  get() {
+    return props.activeMenuKey || internalActiveKey.value || fallbackKey.value
+  },
+  set(value) {
+    internalActiveKey.value = value
+    emit('update:activeMenuKey', value)
+  }
+})
+
+watch(
+  () => props.activeMenuKey,
+  (value) => {
+    if (value) {
+      internalActiveKey.value = value
+    }
+  }
+)
+
+watch(
+  menuEntries,
+  (entries) => {
+    if (!entries.length) {
+      internalActiveKey.value = ''
+      return
+    }
+    const keys = entries.map((entry) => entry._key)
+    if (!keys.includes(currentMenuKey.value)) {
+      internalActiveKey.value = props.activeMenuKey || fallbackKey.value
+    }
+    if (!internalActiveKey.value) {
+      internalActiveKey.value = fallbackKey.value
+    }
+  },
+  { immediate: true }
+)
+
+const overviewKey = computed(() => props.overviewKey || fallbackKey.value)
+
+const isOverview = computed(() => currentMenuKey.value === overviewKey.value)
+
+const activeSlotName = computed(() => {
+  if (isOverview.value) return ''
+  if (currentMenuKey.value && slots[currentMenuKey.value]) {
+    return currentMenuKey.value
+  }
+  if (slots.content) {
+    return 'content'
+  }
+  return ''
+})
 
 const isSidebarOpen = ref(false)
 
@@ -196,7 +270,9 @@ const closeSidebar = () => {
   isSidebarOpen.value = false
 }
 
-const handleMenuClick = () => {
+const selectMenu = (key) => {
+  if (!key) return
+  currentMenuKey.value = key
   closeSidebar()
 }
 
@@ -528,6 +604,10 @@ const progressStyle = computed(() => {
   gap: 24px;
 }
 
+.dashboard__slot--fill {
+  min-height: 0;
+}
+
 .summary-card {
   background: #ffffff;
   border-radius: 22px;
@@ -587,6 +667,7 @@ const progressStyle = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 22px;
+  overflow: hidden;
 }
 
 .card-header {
@@ -873,6 +954,13 @@ const progressStyle = computed(() => {
 
   .sidebar-toggle {
     display: inline-flex;
+  }
+
+  .recent-card,
+  .stats-card {
+    max-height: 65vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 

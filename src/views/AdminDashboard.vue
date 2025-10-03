@@ -12,16 +12,18 @@
     quick-actions-title="Aksi cepat untuk admin"
     accent-color="#1f3c88"
     greeting="Semangat mengelola tim hari ini!"
+    overview-key="overview"
+    v-model:active-menu-key="activeMenu"
     @logout="handleLogout"
   >
-    <template #content>
+    <template #pegawai>
       <AdminEmployeeManager />
     </template>
   </DashboardLayout>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import DashboardLayout from '../components/DashboardLayout.vue'
@@ -44,10 +46,11 @@ const handleLogout = () => {
   router.push('/login')
 }
 
+const activeMenu = ref('overview')
+
 const menuItems = [
-  { label: 'Beranda', helper: 'Ringkasan data pegawai' },
-  { label: 'Data Pegawai', helper: 'Kelola biodata & akses' },
-  { label: 'Field Tambahan', helper: 'Atur kebutuhan informasi' }
+  { key: 'overview', label: 'Beranda', helper: 'Ringkasan data pegawai' },
+  { key: 'pegawai', label: 'Data Pegawai', helper: 'Kelola biodata & akses' }
 ]
 
 const { employees, customFields } = useEmployeeStore()
