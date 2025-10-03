@@ -1,71 +1,120 @@
 <template>
-  <div class="login-page">
-    <div class="login-card">
-      <div class="login-card__info">
-        <div class="brand">
-          <span class="brand__symbol">AMK</span>
-          <span class="brand__title">Portal Penggajian</span>
-        </div>
-        <h1>Masuk ke akun Anda</h1>
-        <p>Kelola slip gaji dan informasi pegawai dalam satu tempat yang rapi.</p>
-        <form class="login-form" @submit.prevent="handleLogin">
-          <label>
-            Email
-            <input
-              v-model.trim="email"
-              type="email"
-              placeholder="nama@perusahaan.com"
-              autocomplete="email"
-              required
-            />
-          </label>
-          <label>
-            Kata sandi
+  <div class="page">
+    <div class="background-gradient"></div>
+    <div class="background-accent background-accent--one"></div>
+    <div class="background-accent background-accent--two"></div>
+
+    <section class="login-card" aria-labelledby="login-title">
+      <header class="login-card__header">
+        <img src="@/assets/amk-logo.svg" alt="Logo AMK" class="login-card__logo" />
+        <h1 id="login-title" style="color: #1E1E54;">AMK Portal</h1>
+        <p class="login-card__subtitle">Cek biodata dan slip gaji Anda dengan akses jauh lebih mudah</p>
+      </header>
+
+      <form class="login-form" @submit.prevent="handleSubmit">
+        <label class="login-form__field">
+          <span style="color: #1E1E54;  font-weight: bold;">Email</span>
+          <input
+            v-model="email"
+            type="email"
+            placeholder="nama@email.com"
+            autocomplete="email"
+            required
+          />
+        </label>
+
+        <label class="login-form__field">
+          <span style="color: #1E1E54; font-weight: bold;">Kata Sandi</span>
+          <div class="password-input">
             <input
               v-model="password"
-              :type="isPasswordVisible ? 'text' : 'password'"
+              :type="showPassword ? 'text' : 'password'"
               placeholder="Masukkan kata sandi"
               autocomplete="current-password"
               required
             />
-          </label>
-          <div class="form-footer">
-            <label class="remember">
-              <input type="checkbox" v-model="rememberMe" />
-              Ingat saya
-            </label>
-            <button type="button" class="toggle-password" @click="togglePasswordVisibility">
-              {{ isPasswordVisible ? 'Sembunyikan' : 'Tampilkan' }}
+            <button
+              type="button"
+              class="password-input__toggle"
+              :aria-label="showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
+              :title="showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
+              :aria-pressed="showPassword ? 'true' : 'false'"
+              @click="togglePassword"
+            >
+              <!-- Eye (show) -->
+              <svg
+                v-if="!showPassword"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                width="22"
+                height="22"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+
+              <!-- Eye off (hide) -->
+              <svg
+                v-else
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                width="22"
+                height="22"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.5 21.5 0 0 1 5.06-5.94" />
+                <path d="M1 1l22 22" />
+                <path d="M9.88 9.88A3 3 0 0 0 12 15a3 3 0 0 0 2.12-.88" />
+                <path d="M14.12 14.12 9.88 9.88" />
+                <path d="M22.94 12a21.5 21.5 0 0 0-5.06-5.94" />
+              </svg>
             </button>
           </div>
-          <p v-if="errorMessage" class="form-error">{{ errorMessage }}</p>
-          <button type="submit">Masuk</button>
-        </form>
-        <div class="login-links">
-          <span>Belum punya akun?</span>
-          <a href="#">Hubungi administrator</a>
+        </label>
+
+        <div class="login-form__actions">
+          <label class="remember">
+            <input v-model="remember" type="checkbox" />
+            <span>Ingat saya</span>
+          </label>
+          <a href="#" class="link">Lupa kata sandi?</a>
         </div>
-      </div>
-      <div class="login-card__preview">
-        <div class="preview-overlay">
-          <h2>Ringkas &amp; modern</h2>
-          <p>Desain dashboard yang elegan mempermudah Anda memantau performa perusahaan.</p>
-          <div class="login-hint">
-            <p>Coba masuk menggunakan akun demo:</p>
-            <ul>
-              <li><strong>Admin:</strong> admin@amk.com / admin123</li>
-              <li><strong>Pegawai:</strong> pegawai@amk.com / pegawai123</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
+
+        <p v-if="errorMessage" class="login-form__error">{{ errorMessage }}</p>
+
+        <button type="submit" class="button button--primary" :disabled="isSubmitting">
+          {{ isSubmitting ? 'Memproses…' : 'Masuk' }}
+        </button>
+
+        <p class="login-form__help" style="font-weight: bold;">
+          Butuh bantuan?
+          <a
+            href="https://api.whatsapp.com/send/?phone=%2B6285173088119&text&type=phone_number&app_absent=0"
+            style="color:blue; font-style:italic; font-weight:bold;"
+            target="_blank"
+            rel="noopener"
+          >Klik Disini</a>
+        </p>
+      </form>
+    </section>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+
 import { ROLE_ROUTES, storeUserSession } from '../utils/auth'
 
 const router = useRouter()
@@ -73,9 +122,10 @@ const route = useRoute()
 
 const email = ref('')
 const password = ref('')
-const rememberMe = ref(false)
+const remember = ref(false)
+const isSubmitting = ref(false)
+const showPassword = ref(false)
 const errorMessage = ref('')
-const isPasswordVisible = ref(false)
 
 const dummyAccounts = [
   {
@@ -94,255 +144,368 @@ const dummyAccounts = [
   }
 ]
 
-const togglePasswordVisibility = () => {
-  isPasswordVisible.value = !isPasswordVisible.value
+const togglePassword = () => {
+  showPassword.value = !showPassword.value
 }
 
-const handleLogin = () => {
-  const account = dummyAccounts.find(
-    (item) => item.email.toLowerCase() === email.value.toLowerCase() && item.password === password.value
-  )
+const handleSubmit = async () => {
+  if (isSubmitting.value) return
 
-  if (!account) {
-    errorMessage.value = 'Email atau kata sandi salah. Silakan coba lagi.'
-    return
-  }
-
-  storeUserSession({
-    email: account.email,
-    role: account.role,
-    name: account.name,
-    position: account.position,
-    remember: rememberMe.value
-  })
-
+  isSubmitting.value = true
   errorMessage.value = ''
-  const redirectTarget = route.query.redirect
-  const targetPath =
-    typeof redirectTarget === 'string' && redirectTarget.length
-      ? redirectTarget
-      : ROLE_ROUTES[account.role]
 
-  router.push(targetPath)
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 300))
+
+    const account = dummyAccounts.find(
+      (item) => item.email.toLowerCase() === email.value.toLowerCase() && item.password === password.value
+    )
+
+    if (!account) {
+      errorMessage.value = 'Email atau kata sandi salah. Silakan coba lagi.'
+      return
+    }
+
+    storeUserSession({
+      email: account.email,
+      role: account.role,
+      name: account.name,
+      position: account.position,
+      remember: remember.value
+    })
+
+    const redirectTarget = route.query.redirect
+    const targetPath =
+      typeof redirectTarget === 'string' && redirectTarget.length
+        ? redirectTarget
+        : ROLE_ROUTES[account.role] || '/login'
+
+    await router.push(targetPath)
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>
 
 <style scoped>
-.login-page {
+.page {
+  position: relative;
   min-height: 100vh;
-  background: radial-gradient(circle at top left, #1f2d66, #0f1434 70%);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32px 16px;
-}
-
-.login-card {
-  width: min(960px, 100%);
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 32px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 40px 80px rgba(7, 12, 32, 0.45);
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  padding: clamp(1.5rem, 3vw, 3rem);
+  background: linear-gradient(160deg, #071f3d 0%, #0b2c59 45%, #154e8a 100%);
   overflow: hidden;
 }
 
-.login-card__info {
-  padding: 48px;
-  background: rgba(11, 20, 60, 0.85);
-  color: #f4f7ff;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+.background-gradient {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.12), transparent 45%),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1), transparent 55%),
+    radial-gradient(circle at bottom, rgba(21, 78, 138, 0.35), transparent 60%);
+  opacity: 0.85;
 }
 
-.brand {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.background-accent {
+  position: absolute;
+  width: clamp(180px, 32vw, 340px);
+  height: clamp(180px, 32vw, 340px);
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.6;
+  z-index: 1;
 }
 
-.brand__symbol {
-  display: inline-flex;
+.background-accent--one {
+  top: clamp(-80px, -6vw, -40px);
+  right: clamp(-60px, -8vw, -20px);
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.background-accent--two {
+  bottom: clamp(-90px, -8vw, -30px);
+  left: clamp(-90px, -8vw, -30px);
+  background: rgba(36, 126, 214, 0.45);
+}
+
+.login-card {
+  position: relative;
+  z-index: 2;
+  width: min(420px, 100%);
+  padding: clamp(2rem, 4vw, 3rem);
+  background: linear-gradient(180deg, #ffffff 0%, #f5f7fa 100%);
+  border-radius: 24px;
+  box-shadow: 0 24px 60px rgba(3, 15, 32, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.5rem, 3vw, 2.25rem);
+}
+
+.login-card__header {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #1f3c88, #2f63ff);
-  color: #fff;
+  text-align: center;
+  gap: 0.75rem;
+}
+
+.login-card__logo {
+  width: clamp(60px, 14vw, 88px);
+  height: auto;
+}
+
+.login-card__header h1 {
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
   font-weight: 700;
-  font-size: 18px;
+  color: #0a2245;
+  letter-spacing: -0.02em;
 }
 
-.brand__title {
-  font-size: 14px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.login-card h1 {
-  font-size: 32px;
-  line-height: 1.2;
-  font-weight: 600;
-}
-
-.login-card p {
-  color: rgba(240, 243, 255, 0.7);
+.login-card__subtitle {
+  color: rgba(9, 35, 70, 0.75);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  text-align: center;
 }
 
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 1rem;
 }
 
-.login-form label {
+.login-form__field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  font-size: 14px;
-  color: rgba(240, 243, 255, 0.85);
+  gap: 0.35rem;
+  color: rgba(9, 35, 70, 0.78);
+  font-size: 0.95rem;
 }
 
-.login-form input {
-  background: rgba(10, 15, 42, 0.9);
-  border: 1px solid rgba(77, 95, 171, 0.6);
+.login-form__field input[type='email'],
+.login-form__field input[type='password'],
+.password-input input[type='text'] {
+  width: 100%;
+  padding: 0.9rem 1rem;
   border-radius: 14px;
-  padding: 14px 16px;
-  color: #f4f7ff;
-  font-size: 15px;
+  border: 1px solid rgba(9, 35, 70, 0.12);
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #091f3a;
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.login-form input:focus {
+.login-form__field input[type='email']:focus,
+.login-form__field input[type='password']:focus,
+.password-input input[type='text']:focus {
   outline: none;
-  border-color: #5d8dff;
-  box-shadow: 0 0 0 3px rgba(93, 141, 255, 0.25);
+  border-color: rgba(21, 78, 138, 0.5);
+  box-shadow: 0 0 0 4px rgba(21, 78, 138, 0.15);
 }
 
-.form-footer {
+.password-input {
+  position: relative;
+  display: flex;
+}
+
+.password-input input {
+  flex: 1;
+}
+
+.password-input__toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.75rem;
+  transform: translateY(-50%);
+  border: none;
+  background: none;
+  color: rgba(9, 35, 70, 0.6);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0.25rem;
+  line-height: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+.password-input__toggle:focus-visible {
+  outline: 2px solid rgba(21, 78, 138, 0.5);
+  outline-offset: 2px;
+}
+
+.password-input__toggle svg {
+  display: block;
+  width: 22px;
+  height: 22px;
+}
+
+.login-form__actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 13px;
-  color: rgba(240, 243, 255, 0.7);
+  font-size: 0.9rem;
+}
+
+.login-form__error {
+  margin: -0.25rem 0 0;
+  color: #d93025;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .remember {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
+  color: rgba(9, 35, 70, 0.75);
 }
 
-.toggle-password {
-  background: none;
-  border: none;
-  color: #7ea2ff;
-  cursor: pointer;
-  font-size: 13px;
-  padding: 0;
+.remember input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: #154e8a;
 }
 
-.form-footer a,
-.login-links a {
-  color: #7ea2ff;
-}
-
-.form-error {
-  background: rgba(255, 90, 90, 0.12);
-  border: 1px solid rgba(255, 138, 138, 0.4);
-  color: #ffd6d6;
-  padding: 12px 14px;
-  border-radius: 12px;
-  font-size: 13px;
-}
-
-.login-form button[type='submit'] {
-  margin-top: 8px;
-  background: linear-gradient(135deg, #3558ff, #1f3c88);
-  color: #fff;
-  border: none;
+.button {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.95rem 1.5rem;
   border-radius: 16px;
-  padding: 16px;
-  font-size: 16px;
+  border: none;
   font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.login-form button[type='submit']:hover {
+.button--primary {
+  background: linear-gradient(135deg, #0b2c59 0%, #154e8a 100%);
+  color: #ffffff;
+  box-shadow: 0 18px 40px rgba(11, 44, 89, 0.35);
+}
+
+.button--primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 16px 30px rgba(12, 21, 59, 0.35);
+  box-shadow: 0 20px 48px rgba(11, 44, 89, 0.4);
 }
 
-.login-links {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: rgba(240, 243, 255, 0.75);
+.button--primary:active {
+  transform: translateY(0);
+  box-shadow: 0 12px 24px rgba(11, 44, 89, 0.3);
 }
 
-.login-card__preview {
-  position: relative;
-  background: url('https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=900&q=80')
-    center/cover;
-  min-height: 320px;
+.button[disabled] {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
-.preview-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(9, 15, 43, 0.65), rgba(15, 24, 59, 0.95));
-  color: #f4f7ff;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 48px;
-  gap: 16px;
+.login-form__help {
+  text-align: center;
+  color: rgba(9, 35, 70, 0.7);
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
-.login-hint {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 16px;
-  font-size: 13px;
-  color: rgba(244, 247, 255, 0.9);
-}
-
-.login-hint ul {
-  margin-top: 8px;
-  display: grid;
-  gap: 6px;
-  list-style: none;
-  padding: 0;
-}
-
-.login-hint strong {
+.link {
+  color: #154e8a;
   font-weight: 600;
+  text-decoration: none;
 }
 
-@media (max-width: 768px) {
-  .login-card {
-    border-radius: 24px;
+.link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .page {
+    padding: 2rem;
   }
 
-  .login-card__info,
-  .preview-overlay {
-    padding: 32px 24px;
+  .login-card {
+    padding: 2.25rem;
   }
 }
 
-@media (max-width: 520px) {
-  .login-card {
-    grid-template-columns: 1fr;
+@media (max-width: 640px) {
+  .page {
+    padding: 1.5rem;
   }
 
-  .login-card__preview {
-    order: -1;
+  .background-accent {
+    width: clamp(140px, 40vw, 220px);
+    height: clamp(140px, 40vw, 220px);
+    filter: blur(45px);
+  }
+
+  .login-card {
+    padding: 1.85rem;
+    border-radius: 20px;
+    gap: 1.5rem;
+  }
+
+  .login-card__subtitle {
+    font-size: 0.9rem;
+  }
+
+  .login-form__actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .button {
+    padding: 0.85rem 1.25rem;
+    border-radius: 14px;
+  }
+}
+
+@media (max-width: 420px) {
+  .page {
+    padding: 1.25rem;
+  }
+
+  .login-card {
+    padding: 1.65rem;
+  }
+
+  .login-card__header h1 {
+    font-size: 1.65rem;
+  }
+
+  .login-card__subtitle {
+    font-size: 0.85rem;
+  }
+
+  .login-form__field span {
+    font-size: 0.85rem;
+  }
+
+  .login-form__field input[type='email'],
+  .login-form__field input[type='password'],
+  .password-input input[type='text'] {
+    padding: 0.8rem 0.9rem;
+    font-size: 0.95rem;
+  }
+
+  .password-input__toggle {
+    right: 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .remember span,
+  .login-form__help,
+  .link,
+  .login-form__actions {
+    font-size: 0.85rem;
   }
 }
 </style>
