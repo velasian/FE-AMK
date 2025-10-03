@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title desc">
+  <title id="title">AMK Portal Logo</title>
+  <desc id="desc">Stylized AMK lettering inside a rounded navy gradient badge.</desc>
+  <defs>
+    <linearGradient id="badgeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b2c59" />
+      <stop offset="100%" stop-color="#154e8a" />
+    </linearGradient>
+  </defs>
+  <rect x="5" y="5" width="110" height="110" rx="28" fill="url(#badgeGradient)" />
+  <path
+    d="M28 82V38h14l18 25 18-25h14v44h-12V57l-20 25-20-25v25H28Z"
+    fill="#ffffff"
+  />
+  <circle cx="60" cy="34" r="6" fill="#24a6ff" />
+</svg>
