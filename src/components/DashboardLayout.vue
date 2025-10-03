@@ -313,9 +313,11 @@ const progressStyle = computed(() => {
   display: grid;
   grid-template-columns: 260px 1fr;
   min-height: 100vh;
+  height: 100vh;
   background: linear-gradient(180deg, #f5f7ff 0%, #eef1ff 100%);
   color: #1b2142;
   position: relative;
+  overflow: hidden;
 }
 
 .dashboard--sidebar-open {
@@ -333,6 +335,9 @@ const progressStyle = computed(() => {
   transition: transform 0.3s ease;
   position: relative;
   z-index: 40;
+  height: 100vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .sidebar__close {
@@ -520,6 +525,9 @@ const progressStyle = computed(() => {
   flex-direction: column;
   gap: 28px;
   position: relative;
+  height: 100vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .dashboard__header {
