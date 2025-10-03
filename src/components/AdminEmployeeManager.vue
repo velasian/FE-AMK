@@ -26,6 +26,22 @@
         <input v-model.trim="newFieldName" type="text" placeholder="Tambah field biodata baru" />
         <button type="submit" class="button">Tambah field</button>
       </form>
+      <div v-if="customFields.length" class="custom-field-list" aria-live="polite">
+        <p>Field aktif:</p>
+        <ul>
+          <li v-for="field in customFields" :key="field.id">
+            <span>{{ field.label }}</span>
+            <button
+              type="button"
+              class="custom-field-list__remove"
+              @click="handleRemoveField(field)"
+              :aria-label="`Hapus field ${field.label}`"
+            >
+              ×
+            </button>
+          </li>
+        </ul>
+      </div>
     </div>
 
     <div class="table-wrapper">
@@ -270,7 +286,8 @@ const {
   addEmployee,
   updateEmployee,
   removeEmployee,
-  addCustomField
+  addCustomField,
+  removeCustomField
 } = useEmployeeStore()
 
 const searchQuery = ref('')
@@ -439,6 +456,24 @@ watch(totalPages, (value) => {
   }
 })
 
+watch(
+  customFields,
+  (fields) => {
+    const keys = fields.map((field) => field.key)
+    fields.forEach((field) => {
+      if (typeof formCustomValues[field.key] === 'undefined') {
+        formCustomValues[field.key] = ''
+      }
+    })
+    Object.keys(formCustomValues).forEach((key) => {
+      if (!keys.includes(key)) {
+        delete formCustomValues[key]
+      }
+    })
+  },
+  { deep: true, immediate: true }
+)
+
 const selectEmployee = (id) => {
   if (!id) {
     selectedEmployeeId.value = ''
@@ -553,6 +588,12 @@ const handleAddField = () => {
   newFieldName.value = ''
 }
 
+const handleRemoveField = (field) => {
+  if (!field) return
+  removeCustomField(field.id)
+  delete formCustomValues[field.key]
+}
+
 const formatDate = (value) => {
   if (!value) return 'Belum diisi'
   const date = new Date(value)
@@ -665,6 +706,64 @@ onBeforeUnmount(detachDragListeners)
   border: 1px solid rgba(31, 60, 136, 0.15);
   background: rgba(248, 250, 255, 0.7);
   font-size: 14px;
+}
+
+.custom-field-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(31, 60, 136, 0.05);
+  border-radius: 16px;
+  flex: 1 1 220px;
+  min-width: 200px;
+}
+
+.custom-field-list p {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1b2142;
+}
+
+.custom-field-list ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+
+.custom-field-list li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(31, 60, 136, 0.12);
+  font-size: 13px;
+  color: #1b2142;
+}
+
+.custom-field-list__remove {
+  background: none;
+  border: none;
+  color: #d95050;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.custom-field-list__remove:hover,
+.custom-field-list__remove:focus-visible {
+  color: #b63c3c;
+}
+
+.custom-field-list__remove:focus-visible {
+  outline: 2px solid rgba(217, 80, 80, 0.35);
+  outline-offset: 2px;
 }
 
 .table-wrapper {
@@ -946,6 +1045,8 @@ onBeforeUnmount(detachDragListeners)
   flex-direction: column;
   position: relative;
   will-change: transform;
+  max-height: min(90vh, 760px);
+  overflow: hidden;
 }
 
 .modal__header {
@@ -987,6 +1088,10 @@ onBeforeUnmount(detachDragListeners)
   display: flex;
   flex-direction: column;
   gap: 24px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable;
 }
 
 .modal__grid {
@@ -1085,6 +1190,10 @@ onBeforeUnmount(detachDragListeners)
     width: 100%;
   }
 
+  .custom-field-list {
+    width: 100%;
+  }
+
   .employee-detail {
     padding: 20px;
   }
@@ -1107,8 +1216,7 @@ onBeforeUnmount(detachDragListeners)
   }
 
   .modal {
-    max-height: 90vh;
-    overflow-y: auto;
+    width: min(92vw, 100%);
   }
 }
 </style>

@@ -243,6 +243,24 @@ export const useEmployeeStore = () => {
     return field
   }
 
+  const removeCustomField = (id) => {
+    const field = customFields.value.find((item) => item.id === id)
+    if (!field) return
+
+    customFields.value = customFields.value.filter((item) => item.id !== id)
+
+    employees.value = employees.value.map((record) => {
+      if (!record.customValues) return { ...record }
+      const { [field.key]: _removed, ...rest } = record.customValues
+      return {
+        ...record,
+        customValues: { ...rest }
+      }
+    })
+
+    return field
+  }
+
   const upsertCustomValue = (employeeId, fieldKey, value) => {
     updateEmployee(employeeId, {
       customValues: {
@@ -263,6 +281,7 @@ export const useEmployeeStore = () => {
     updateEmployee,
     removeEmployee,
     addCustomField,
+    removeCustomField,
     upsertCustomValue,
     getEmployeeByEmail
   }
