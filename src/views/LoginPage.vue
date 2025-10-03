@@ -7,8 +7,8 @@
     <section class="login-card" aria-labelledby="login-title">
       <header class="login-card__header">
         <img src="@/assets/amk-logo.svg" alt="Logo AMK" class="login-card__logo" />
-        <h1 id="login-title">AMK Portal</h1>
-        <p class="login-card__subtitle">Masuk untuk mengelola akun dan nikmati pengalaman terbaik.</p>
+        <h1 id="login-title" style="color: black;" >AMK Portal</h1>
+        <p class="login-card__subtitle">Cek biodata dan slip gaji Anda dengan akses jauh lebih mudah</p>
       </header>
 
       <form class="login-form">
@@ -34,7 +34,7 @@
         </div>
 
         <button type="submit" class="button button--primary">Masuk</button>
-        <p class="login-form__help">Butuh bantuan? Hubungi admin</p>
+        <p class="login-form__help">Butuh bantuan? <a href="https://api.whatsapp.com/send/?phone=%2B6285173088119&text&type=phone_number&app_absent=0" style="color:blue; font-style:italic; font-style: bold;">Klik Disini</a></p>
       </form>
     </section>
   </div>
